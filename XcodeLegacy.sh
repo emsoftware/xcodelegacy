@@ -24,10 +24,13 @@
 # 1.8 (07/04/2016): add options to install only some SDKs or compilers only
 # 1.9 (16/09/2016): Xcode 8 dropped 10.11 SDK, get it from Xcode 7.3.1
 # 2.0 (02/05/2017): Xcode 8 cannot always link i386 for OS X 10.5, use the Xcode 3 linker for this arch too. Force use of legacy assembler with GCC 4.x.
+# 2.0+(17/10/2017): Adapted to Adobe InDesign and QuarkXPress development [Chris Roueche]
 # 2.1 (17/01/2017): Xcode 9 dropped 10.12 SDK, get it from https://github.com/phracker/MacOSX-SDKs; fix compiling with GNU Ada, and many other fixes
+# 2.1+(18/09/2018): Rebase Adobe InDesign and QuarkXPress adaptations [Chris Roueche]
 # 2.2 (12/02/2019): Added support for using macOS High Sierra 10.13 SDK from Xcode 9.4.1 for use on Xcode 10/macOS 10.14 Mojave, also changed source of OS X 10.12 SDK to Xcode 8.3.3
 # 2.3 (27/03/2019): Added an option to install in a custom Xcode path
-
+# 2.3+(25/06/2020): Rebase Adobe InDesign and QuarkXPress adaptations [Chris Roueche]
+#
 #set -e # Exit immediately if a command exits with a non-zero status
 #set -u # Treat unset variables as an error when substituting.
 #set -x # Print commands and their arguments as they are executed.
@@ -118,7 +121,8 @@ done
 
 if [ $gotoption = 0 ]; then
     compilers=1
-    osx104=1
+# (10.4's SDK isn't needed for InDesign/QuarkXPress dev.)
+#    osx104=1
     osx105=1
     osx106=1
     osx107=1
@@ -135,8 +139,8 @@ if [ $# != 1 ]; then
     echo "Usage: $0 [-compilers|-osx104|-osx105|-osx106|-osx107|-osx108|-osx109|-osx1010|-osx1011|-osx1012|-osx1013] [-path=/path/to/XcodeXXX.app] buildpackages|install|installbeta|cleanpackages|uninstall|uninstallbeta"
     echo ""
     echo "Description: Extracts / installs / cleans / uninstalls the following components"
-    echo "from Xcode 3.2.6, Xcode 4.6.3, Xcode 5.1.1, Xcode 6.4, Xcode 7.3.1, Xcode 8.3.3 and Xcode 9.4.1 which"
-    echo "are not available in Xcode >= 4.2:"
+    echo "from Xcode 3.2.5, Xcode 4.6.3, Xcode 5.1.1, Xcode 6.4, Xcode 7.3.1, Xcode 8.2.1 and Xcode 9.3,"
+    echo "which are not available in Xcode >= 4.2, into /Applications/Xcode.app:"
     echo " - PPC assembler and linker"
     echo " - GCC 4.0 and 4.2 compilers and Xcode plugins"
     echo " - LLVM-GCC 4.2 compiler and Xcode plugin (Xcode >= 5)"
@@ -250,13 +254,13 @@ case $1 in
         #
         missingdmg=0
         # note: Xcode links from http://stackoverflow.com/questions/10335747/how-to-download-xcode-4-5-6-7-and-get-the-dmg-file/10335943#10335943
-        if [ "$xc3" = 1 ] && [ ! -f xcode_3.2.6_and_ios_sdk_4.3.dmg ]; then
-            echo "*** You should download Xcode 3.2.6. Login to:"
+        if [ "$xc3" = 1 ] && [ ! -f xcode_3.2.5_and_ios_sdk_4.2_final.dmg ]; then
+            echo "*** you should download Xcode 3.2.5. Login to:"
             echo " https://developer.apple.com/downloads/"
             echo "then download from:"
-            echo " https://developer.apple.com/devcenter/download.action?path=/Developer_Tools/xcode_3.2.6_and_ios_sdk_4.3__final/xcode_3.2.6_and_ios_sdk_4.3.dmg"
+            echo " https://developer.apple.com/devcenter/download.action?path=/Developer_Tools/xcode_3.2.5_and_ios_sdk_4.2_final/xcode_3.2.5_and_ios_sdk_4.2_final.dmg"
             echo "or"
-            echo " https://adcdownload.apple.com/Developer_Tools/xcode_3.2.6_and_ios_sdk_4.3__final/xcode_3.2.6_and_ios_sdk_4.3.dmg"
+            echo " https://adcdownload.apple.com/Developer_Tools/xcode_3.2.5_and_ios_sdk_4.2__final/xcode_3.2.5_and_ios_sdk_4.2_final.dmg"
             echo "and then run this script from within the same directory as the downloaded file"
             missingdmg=1
         fi
@@ -264,9 +268,9 @@ case $1 in
             echo "*** You should download Xcode 4.6.3. Login to:"
             echo " https://developer.apple.com/downloads/"
             echo "then download from:"
-            echo " https://developer.apple.com/devcenter/download.action?path=/Developer_Tools/xcode_4.6.3/xcode4630916281a.dmg"
+            echo " https://developer.apple.com/devcenter/download.action?path=/Developer_Tools/xcode_4.5.2/xcode4520418508a.dmg"
             echo "or"
-            echo " https://adcdownload.apple.com/Developer_Tools/xcode_4.6.3/xcode4630916281a.dmg"
+            echo " https://adcdownload.apple.com/Developer_Tools/xcode_4.5.2/xcode4520418508a.dmg"
             echo "and then run this script from within the same directory as the downloaded file"
             missingdmg=1
         fi
@@ -300,19 +304,19 @@ case $1 in
             echo "and then run this script from within the same directory as the downloaded file"
             missingdmg=1
         fi
-        if [ "$xc8" = 1 ] && [ ! -f Xcode8.3.3.xip ]; then
-            echo "*** You should download Xcode 8.3.3. Login to:"
+        if [ "$xc8" = 1 ] && [ ! -f Xcode_8.2.1.xip ]; then
+            echo "*** You should download Xcode 8.2.1. Login to:"
             echo " https://developer.apple.com/downloads/"
             echo "then download from:"
-            echo " https://download.developer.apple.com/Developer_Tools/Xcode_8.3.3/Xcode8.3.3.xip"
+            echo " https://download.developer.apple.com/Developer_Tools/Xcode_8.2.1/Xcode_8.2.1.xip"
             echo "and then run this script from within the same directory as the downloaded file"
             missingdmg=1
         fi
-        if [ "$xc9" = 1 ] && [ ! -f Xcode_9.4.1.xip ]; then
-            echo "*** You should download Xcode 9.4.1. Login to:"
+        if [ "$xc9" = 1 ] && [ ! -f Xcode_9.3.xip ]; then
+            echo "*** You should download Xcode 9.3. Login to:"
             echo " https://developer.apple.com/downloads/"
             echo "then download from:"
-            echo " https://download.developer.apple.com/Developer_Tools/Xcode_9.4.1/Xcode_9.4.1.xip"
+            echo " https://download.developer.apple.com/Developer_Tools/Xcode_9.3/Xcode_9.3.xip"
             echo "and then run this script from within the same directory as the downloaded file"
             missingdmg=1
         fi
@@ -330,11 +334,11 @@ case $1 in
         MNTDIR="$(mktemp -d mount.XXX)"
         ATTACH_OPTS=(-nobrowse -mountroot "$MNTDIR")
         if [ "$xc3" = 1 ]; then
-            # you should download Xcode 3.2.6 from:
+            # you should download Xcode 3.2.5 from:
             # http://connect.apple.com/cgi-bin/WebObjects/MemberSite.woa/wa/getSoftware?bundleID=20792
-            hdiutil attach xcode_3.2.6_and_ios_sdk_4.3.dmg "${ATTACH_OPTS[@]}"
+            hdiutil attach xcode_3.2.5_and_ios_sdk_4.2_final.dmg "${ATTACH_OPTS[@]}"
             if [ ! -d "$MNTDIR/Xcode and iOS SDK" ]; then
-                echo "*** Error while trying to attach disk image xcode_3.2.6_and_ios_sdk_4.3.dmg"
+                echo "*** Error while trying to attach disk image xcode_3.2.5_and_ios_sdk_4.2_final.dmg"
                 echo "Aborting"
                 exit
             fi
@@ -355,21 +359,21 @@ case $1 in
                 ( (cd /tmp/XC3 || exit; tar cf - usr/libexec/gcc/darwin/ppc usr/libexec/gcc/darwin/ppc64 usr/libexec/gcc/darwin/i386 usr/libexec/gcc/darwin/x86_64) | gzip -c > Xcode3as.tar.gz) && echo "*** Created Xcode3as.tar.gz in directory $(pwd)"
                 ( (cd /tmp/XC3 || exit; tar cf - usr/bin/ld) | gzip -c > Xcode3ld.tar.gz) && echo "*** Created Xcode3ld.tar.gz in directory $(pwd)"
 
-                #(cp "$MNTDIR/Xcode and iOS SDK/Packages/gcc4.0.pkg" xcode_3.2.6_gcc4.0.pkg) && echo "*** Created xcode_3.2.6_gcc4.0.pkg in directory $(pwd)"
+                #(cp "$MNTDIR/Xcode and iOS SDK/Packages/gcc4.0.pkg" xcode_3.2.5_gcc4.0.pkg) && echo "*** Created xcode_3.2.5_gcc4.0.pkg in directory $(pwd)"
                 rm -rf /tmp/XC3
                 pkgutil --expand "$MNTDIR/Xcode and iOS SDK/Packages/gcc4.0.pkg" /tmp/XC3
 
                 (cd /tmp/XC3 || exit; gzip -dc Payload | cpio -id --quiet usr) #we only need these, see https://github.com/devernay/xcodelegacy/issues/8
                 ( (cd /tmp/XC3 || exit; tar cf - usr) | gzip -c > Xcode3gcc40.tar.gz) && echo "*** Created Xcode3gcc40.tar.gz in directory $(pwd)"
 
-                #(cp "$MNTDIR/Xcode and iOS SDK/Packages/gcc4.2.pkg" xcode_3.2.6_gcc4.2.pkg) && echo "*** Created xcode_3.2.6_gcc4.2.pkg in directory $(pwd)"
+                #(cp "$MNTDIR/Xcode and iOS SDK/Packages/gcc4.2.pkg" xcode_3.2.5_gcc4.2.pkg) && echo "*** Created xcode_3.2.5_gcc4.2.pkg in directory $(pwd)"
                 rm -rf /tmp/XC3
                 pkgutil --expand "$MNTDIR/Xcode and iOS SDK/Packages/gcc4.2.pkg" /tmp/XC3
 
                 (cd /tmp/XC3 || exit; gzip -dc Payload | cpio -id --quiet usr) #we only need these, see https://github.com/devernay/xcodelegacy/issues/8
                 ( (cd /tmp/XC3 || exit; tar cf - usr) | gzip -c > Xcode3gcc42.tar.gz) && echo "*** Created Xcode3gcc42.tar.gz in directory $(pwd)"
 
-                #(cp "$MNTDIR/Xcode and iOS SDK/Packages/llvm-gcc4.2.pkg" xcode_3.2.6_llvm-gcc4.2.pkg) && echo "*** Created xcode_3.2.6_llvm-gcc4.2.pkg in directory $(pwd)"
+                #(cp "$MNTDIR/Xcode and iOS SDK/Packages/llvm-gcc4.2.pkg" xcode_3.2.5_llvm-gcc4.2.pkg) && echo "*** Created xcode_3.2.5_llvm-gcc4.2.pkg in directory $(pwd)"
                 rm -rf /tmp/XC3
                 pkgutil --expand "$MNTDIR/Xcode and iOS SDK/Packages/llvm-gcc4.2.pkg" /tmp/XC3
 
@@ -532,9 +536,9 @@ EOF
         fi
 
         if [ "$xc4" = 1 ]; then
-            hdiutil attach xcode4630916281a.dmg "${ATTACH_OPTS[@]}"
+            hdiutil attach xcode4520418508a.dmg "${ATTACH_OPTS[@]}"
             if [ ! -d "$MNTDIR/Xcode" ]; then
-                echo "*** Error while trying to attach disk image xcode4630916281a.dmg"
+                echo "*** Error while trying to attach disk image xcode4520418508a.dmg"
                 echo "Aborting"
                 rmdir "$MNTDIR"
                 exit
@@ -594,8 +598,8 @@ EOF
         fi
         if [ "$xc8" = 1 ]; then
             if [ "$osx1012" = 1 ]; then
-                echo "Extracting Mac OS X 10.12 SDK from Xcode 8.3.3. Be patient - this will take some time"
-                open Xcode8.3.3.xip
+                echo "Extracting Mac OS X 10.12 SDK from Xcode 8.2.1. Be patient - this will take some time"
+                open Xcode_8.2.1.xip
                 while [ ! -d Xcode.app ]; do
                     sleep 5
                 done
@@ -606,8 +610,8 @@ EOF
         fi
         if [ "$xc9" = 1 ]; then
             if [ "$osx1013" = 1 ]; then
-                echo "Extracting Mac OS X 10.13 SDK from Xcode 9.4.1. Be patient - this will take some time"
-                open Xcode_9.4.1.xip
+                echo "Extracting Mac OS X 10.13 SDK from Xcode 9.3. Be patient - this will take some time"
+                open Xcode_9.3.xip
                 while [ ! -d Xcode.app ]; do
                     sleep 5
                 done
@@ -785,23 +789,20 @@ AS_EOF
             else
                 mkdir -p "$GCCDIR/tmp"
                 (gzip -dc Xcode3ld.tar.gz | (cd "$GCCDIR/tmp" || exit; tar xf -))
+                mkdir -p "$GCCDIR/usr/libexec/gcc/darwin/ppc/"
                 cp "$GCCDIR/tmp/usr/bin/ld" "$GCCDIR/usr/libexec/gcc/darwin/ppc/"
-                ln "$GCCDIR/usr/libexec/gcc/darwin/ppc/ld" "$GCCDIR/usr/libexec/gcc/darwin/ppc64/ld"
                 rm -rf "$GCCDIR/tmp"
                 mkdir -p "$GCCINSTALLDIR/usr/libexec/ld/ppc"
-                mkdir -p "$GCCINSTALLDIR/usr/libexec/ld/ppc7400"
-                mkdir -p "$GCCINSTALLDIR/usr/libexec/ld/ppc970"
-                mkdir -p "$GCCINSTALLDIR/usr/libexec/ld/ppc64"
                 ln -sf "$GCCDIR/usr/libexec/gcc/darwin/ppc/ld" "$GCCINSTALLDIR/usr/libexec/ld/ppc/ld"
-                ln -sf "$GCCDIR/usr/libexec/gcc/darwin/ppc/ld" "$GCCINSTALLDIR/usr/libexec/ld/ppc7400/ld"
-                ln -sf "$GCCDIR/usr/libexec/gcc/darwin/ppc/ld" "$GCCINSTALLDIR/usr/libexec/ld/ppc970/ld"
-                ln -sf "$GCCDIR/usr/libexec/gcc/darwin/ppc64/ld" "$GCCINSTALLDIR/usr/libexec/ld/ppc64/ld"
                 # Xcode 8's ld fails to link i386 and x86_64 for OSX 10.5: https://github.com/devernay/xcodelegacy/issues/30
-                # Since this ld is from Xcode 3.2.6 for OSX 10.6, this should be OK if the target OS is < 10.6
+                # Since this ld is from Xcode 3.2.5 for OSX 10.6, this should be OK if the target OS is < 10.6
                 # (which is checked by the stub ld script)
-                for arch in i386 x86_64; do
+                for arch in ppc64 ppc7400 ppc970 i386 x86_64; do
                     mkdir -p "$GCCDIR/usr/libexec/gcc/darwin/$arch"
                     ln "$GCCDIR/usr/libexec/gcc/darwin/ppc/ld" "$GCCDIR/usr/libexec/gcc/darwin/$arch/ld"
+                done
+				# Install ld for each arch's toolchain.
+                for arch in ppc ppc64 ppc7400 ppc970 i386 x86_64; do
                     mkdir -p "$GCCINSTALLDIR/usr/libexec/ld/$arch"
                     ln -sf "$GCCDIR/usr/libexec/gcc/darwin/$arch/ld" "$GCCINSTALLDIR/usr/libexec/ld/$arch/ld"
                 done
@@ -809,6 +810,8 @@ AS_EOF
                 if [ ! -f "$GCCINSTALLDIR/usr/bin/ld-original" ]; then
                     mv "$GCCINSTALLDIR/usr/bin/ld" "$GCCINSTALLDIR/usr/bin/ld-original"
                 fi
+                # Always use legacy ld when building for 10.5 & 10.6,
+                # even for i386 and x86_64 architectures.
                 cat <<LD_EOF >> "$GCCINSTALLDIR"/usr/bin/ld
 #!/bin/bash
 
@@ -853,7 +856,7 @@ if [ -n \${MACOSX_DEPLOYMENT_TARGET+x} ]; then
         esac
 fi
 
-#echo "Running ld for \$ARCH ..."
+#echo "Running ld for \$ARCH/\$MACOSX_DEPLOYMENT_TARGET... "
 
 LD_DIR=\`dirname "\$0"\`
 if [ -x "\$LD_DIR/ld-original" ]; then
@@ -908,7 +911,7 @@ if [ "\$USE_OLD_LD" -eq '1' ]; then
                 echo "Error: cannot find ld for \$ARCH in \$LD_DIR/../libexec/ld/\$LDARCHDIR \$LD_DIR/../../../libexec/ld/\$LDARCHDIR \$LD_DIR/../../../../libexec/ld/\$LDARCHDIR or \$LD_DIR/../../../../../libexec/ld/\$LDARCHDIR"
                 exit 1
         fi
-        
+
         \`\$LD "\${ARGS[@]}"\`
         LD_RESULT=\$?
 else
@@ -1028,30 +1031,30 @@ SPEC_EOF
 
         if [ "$compilers" = 1 ]; then
             if [ -f /usr/bin/gcc-4.0 ]; then
-                #echo "*** Not installing xcode_3.2.6_gcc4.0.pkg (found installed in /usr/bin/gcc-4.0, uninstall first to force install)"
+                #echo "*** Not installing xcode_3.2.5_gcc4.0.pkg (found installed in /usr/bin/gcc-4.0, uninstall first to force install)"
                 echo "*** Not installing Xcode3gcc40.tar.gz (found installed in /usr/bin/gcc-4.0, uninstall first to force install)"
             elif [ -f "$GCCINSTALLDIR/usr/bin/gcc-4.0" ]; then
                 echo "*** Not installing Xcode3gcc40.tar.gz (found installed in $GCCINSTALLDIR/usr/bin/gcc-4.0, uninstall first to force install)"
             else
                 echo "*** Installing GCC 4.0"
-                #installer -pkg xcode_3.2.6_gcc4.0.pkg -target /
+                #installer -pkg xcode_3.2.5_gcc4.0.pkg -target /
                 (gzip -dc Xcode3gcc40.tar.gz | (cd "$GCCINSTALLDIR" || exit; tar xf -)) && echo "*** installed Xcode3gcc40.tar.gz"
             fi
             if [ -f /usr/bin/gcc-4.2 ]; then
-                #echo "*** Not installing xcode_3.2.6_gcc4.2.pkg (found installed in /usr/bin/gcc-4.2, uninstall first to force install)"
+                #echo "*** Not installing xcode_3.2.5_gcc4.2.pkg (found installed in /usr/bin/gcc-4.2, uninstall first to force install)"
                 echo "*** Not installing Xcode3gcc42.tar.gz (found installed in /usr/bin/gcc-4.2, uninstall first to force install)"
             elif [ -f "$GCCINSTALLDIR/usr/bin/gcc-4.2" ]; then
                 echo "*** Not installing Xcode3gcc42.tar.gz (found installed in $GCCINSTALLDIR/usr/bin/gcc-4.2, uninstall first to force install)"
             else
                 echo "*** Installing GCC 4.2"
-                #installer -pkg xcode_3.2.6_gcc4.2.pkg -target /
+                #installer -pkg xcode_3.2.5_gcc4.2.pkg -target /
                 (gzip -dc Xcode3gcc42.tar.gz | (cd "$GCCINSTALLDIR" || exit; tar xf -)) && echo "*** installed Xcode3gcc42.tar.gz"
             fi
             if [ -f "$GCCINSTALLDIR/usr/bin/llvm-gcc-4.2" ]; then
                 echo "*** Not installing Xcode3llvmgcc42.tar.gz (found installed in $GCCINSTALLDIR/usr/bin/llvm-gcc-4.2, uninstall first to force install)"
             else
                 echo "*** Installing LLVM GCC 4.2"
-                #installer -pkg xcode_3.2.6_llvm-gcc4.2.pkg -target /
+                #installer -pkg xcode_3.2.5_llvm-gcc4.2.pkg -target /
                 (gzip -dc Xcode3llvmgcc42.tar.gz | (cd "$GCCINSTALLDIR" || exit; tar xf -)) && echo "*** installed Xcode3llvmgcc42.tar.gz"
                 if [ -f "$GCCDIR/usr/llvm-gcc-4.2/bin/llvm-gcc-4.2" ]; then
                     for i in g++ gcc; do
@@ -1124,7 +1127,7 @@ SPEC_EOF
         #
 
         if [ "$compilers" = 1 ]; then
-            rm XcodePluginGCC40.tar.gz Xcode3as.tar.gz Xcode3ld.tar.gz xcode_3.2.6_gcc4.0.pkg xcode_3.2.6_gcc4.2.pkg xcode_3.2.6_llvm-gcc4.2.pkg XcodePluginGCC42-Xcode4.tar.gz XcodePluginGCC42.tar.gz XcodePluginLLVMGCC42.tar.gz Xcode3gcc40.tar.gz Xcode3gcc42.tar.gz Xcode3llvmgcc42.tar.gz 2>/dev/null
+            rm XcodePluginGCC40.tar.gz Xcode3as.tar.gz Xcode3ld.tar.gz xcode_3.2.5_gcc4.0.pkg xcode_3.2.5_gcc4.2.pkg xcode_3.2.5_llvm-gcc4.2.pkg XcodePluginGCC42-Xcode4.tar.gz XcodePluginGCC42.tar.gz XcodePluginLLVMGCC42.tar.gz Xcode3gcc40.tar.gz Xcode3gcc42.tar.gz Xcode3llvmgcc42.tar.gz 2>/dev/null
         fi
         #for i in 10.4u 10.5 10.6 10.7 10.8 10.9 10.10; do
         if [ "$osx104" = 1 ]; then
@@ -1185,6 +1188,8 @@ SPEC_EOF
             fi
             for f in     "$GCCDIR/usr/libexec/gcc/darwin/ppc" \
                          "$GCCDIR/usr/libexec/gcc/darwin/ppc64" \
+                         "$GCCDIR/usr/libexec/gcc/darwin/ppc7400" \
+                         "$GCCDIR/usr/libexec/gcc/darwin/ppc970" \
                          "$GCCDIR/usr/libexec/gcc/darwin/i386" \
                          "$GCCDIR/usr/libexec/gcc/darwin/x86_64" \
                          "$GCCINSTALLDIR/usr/libexec/as/ppc" \
